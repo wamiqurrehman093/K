@@ -27,6 +27,8 @@ class Game(arcade.Window):
         self.player.walk_right_textures = []
         self.player.crouch_right_textures = []
         self.player.crouch_left_textures = []
+        self.player.jump_right_textures = []
+        self.player.jump_left_textures = []
 
         for i in range(14):
             self.player.stand_right_textures.append(
@@ -57,6 +59,16 @@ class Game(arcade.Window):
         for i in range(12):
             self.player.crouch_left_textures.append(
                 arcade.load_texture("images/player/crouch/"+str(i)+".png", scale=PLAYER_SCALE, mirrored=True)
+            )
+        
+        for i in range(14):
+            self.player.jump_right_textures.append(
+                arcade.load_texture("images/player/jumping/"+str(i)+".png", scale=PLAYER_SCALE)
+            )
+
+        for i in range(14):
+            self.player.jump_left_textures.append(
+                arcade.load_texture("images/player/jumping/"+str(i)+".png", scale=PLAYER_SCALE, mirrored=True)
             )
 
         self.player.center_x = 640

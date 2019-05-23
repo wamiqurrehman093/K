@@ -9,7 +9,12 @@ FACE_UP = 3
 FACE_DOWN = 4
 
 SPEED = 9
+JUMP_SPEED = 12
 
+STATE_IDLE = 0
+STATE_WALKING = 1
+STATE_JUMPING = 2
+STATE_CROUCHING = 4
 
 class Player(arcade.Sprite):
     def __init__(self, scale: float = 1,
@@ -37,26 +42,47 @@ class Player(arcade.Sprite):
         self.crouch_right_textures = None
         self.crouch_index = 0
         self.other_keys = False
+        self.jump_right_textures = None
+        self.jump_left_textures = None
+        self.jumping = False
+        self.before_jump_pos = None
+        self.jump_texture_index = 0
+        self.state_ = STATE_IDLE
+        self.key = None
+        self.previous_state_ = None
 
     def input_handler(self, key, type):
         self.input_type = type
-        if type == "PRESSED":
-            if key == arcade.key.DOWN and not self.other_keys:
-                self.down_key = True
-            elif key == arcade.key.LEFT:
-                self.change_x = -SPEED
-                self.other_keys = True
-            elif key == arcade.key.RIGHT:
-                self.change_x = SPEED
-                self.other_keys = True
-        elif type == "RELEASED":
-            if key == arcade.key.LEFT or key == arcade.key.RIGHT:
-                self.change_x = 0
-                self.other_keys = False
-                if self.state == FACE_LEFT:
-                    self.texture = self.stand_left_textures[-1]
-                if self.state == FACE_RIGHT:
-                    self.texture = self.stand_right_textures[-1]
+        self.key = key
+        if self.state_ == STATE_IDLE:
+            if type == "PRESSED":
+                if key == arcade.key.UP:
+                    self.state_ = STATE_JUMPING
+                    self.before_jump_pos = self.center_y
+                    self.change_y = JUMP_SPEED
+                elif key == arcade.key.DOWN:
+                    self.state_ = STATE_CROUCHING
+                elif key == arcade.key.LEFT:
+                    self.state_ = STATE_WALKING
+                    self.change_x = -SPEED
+                elif key == arcade.key.RIGHT:
+                    self.state_ = STATE_WALKING
+                    self.change_x = SPEED
+        elif self.state_ == STATE_WALKING:
+            if type == "PRESSED":
+                if key == arcade.key.UP:
+                    self.state_ = STATE_JUMPING
+                    self.before_jump_pos = self.center_y
+                    self.change_y = JUMP_SPEED
+                    self.previous_state_ = STATE_WALKING
+            if type == "RELEASED":
+                if key == arcade.key.LEFT or key == arcade.key.RIGHT:
+                    self.state_ = STATE_IDLE
+                    self.change_x = 0
+                    if self.state == FACE_LEFT:
+                        self.texture = self.stand_left_textures[-1]
+                    if self.state == FACE_RIGHT:
+                        self.texture = self.stand_right_textures[-1]
 
     def idle_animation(self, time):
         if self.just_finished:
@@ -77,20 +103,54 @@ class Player(arcade.Sprite):
 
     def update(self, delta_time):
         self.center_x += self.change_x
-        if self.down_key:
-            self.crouch_animation(self.input_type)
-        else:
-            self.time += delta_time
-            seconds = self.time % 60
+        self.center_y += self.change_y
+        self.time += delta_time
+        seconds = self.time % 60
+        if self.state_ == STATE_CROUCHING:
+            self.crouch_animation(self.input_type, self.key)
+        elif self.state_ == STATE_IDLE:
             self.idle_animation(seconds)
+        elif self.state_ == STATE_WALKING:
             self.walk_animation()
-            if seconds > 0.05:
-                self.time = 0.0
+        elif self.state_ == STATE_JUMPING:
+            self.jump_animation(seconds)
+        if seconds > 0.05:
+            self.time = 0.0
+    
+    def jump_animation(self, time):
+        if self.center_y >= (self.before_jump_pos+200):
+            self.change_y = -SPEED
 
-    def crouch_animation(self, type):
+        if self.change_y != 0 and time >= 0.05:
+            self.last_texture_change_center_x = self.center_x
+            self.last_texture_change_center_y = self.center_y
+
+            if self.state == FACE_LEFT:
+                texture_list = self.jump_left_textures
+
+            elif self.state == FACE_RIGHT:
+                texture_list = self.jump_right_textures
+
+            self.jump_texture_index += 1
+            if self.jump_texture_index >= len(texture_list):
+                self.jump_texture_index = 0
+                self.state_ = STATE_IDLE
+                self.change_y = 0
+                self.change_x = 0
+                if self.state == FACE_LEFT:
+                    self.texture = self.stand_left_textures[-1]
+                if self.state == FACE_RIGHT:
+                    self.texture = self.stand_right_textures[-1]
+                if self.center_y != self.before_jump_pos:
+                    self.center_y = self.before_jump_pos
+                return
+
+            self.texture = texture_list[self.jump_texture_index]
+
+    def crouch_animation(self, type, key):
         if type == "PRESSED" and self.crouch_index <= 5 and self.change_x == 0 and self.change_y == 0:
             if self.crouch_index == 0:
-                self.center_y -= 64
+                self.center_y -= 76
             if self.state == FACE_LEFT:
                 texture_list = self.crouch_left_textures
             elif self.state == FACE_RIGHT:
@@ -101,16 +161,16 @@ class Player(arcade.Sprite):
 
             self.texture = texture_list[self.crouch_index]
         
-        if type == "RELEASED" and self.crouch_index >= 5 and self.change_x == 0 and self.change_y == 0:
+        if type == "RELEASED" and key == arcade.key.DOWN and self.crouch_index >= 5 and self.change_x == 0 and self.change_y == 0:
             if self.state == FACE_LEFT:
                 texture_list = self.crouch_left_textures
             elif self.state == FACE_RIGHT:
                 texture_list = self.crouch_right_textures
             self.crouch_index += 1
             if self.crouch_index >= len(texture_list):
-                self.center_y += 64
+                self.center_y += 76
                 self.crouch_index = 0
-                self.down_key = False
+                self.state_ = STATE_IDLE
                 if self.state == FACE_LEFT:
                     self.texture = self.stand_left_textures[-1]
                 if self.state == FACE_RIGHT:
