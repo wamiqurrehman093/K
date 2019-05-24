@@ -1,8 +1,10 @@
 import arcade
-from player import Player
+from character import Character
 
 
-PLAYER_SCALE = 3.5
+PLAYER_SCALE = 4
+PLAYER_CENTER_X = 210
+PLAYER_CENTER_Y = 210
 
 
 class Game(arcade.Window):
@@ -20,7 +22,7 @@ class Game(arcade.Window):
     
     def setup_player(self):
         self.player_list = arcade.SpriteList()
-        self.player = Player()
+        self.player = Character()
         self.player.stand_right_textures = []
         self.player.stand_left_textures = []
         self.player.walk_left_textures = []
@@ -71,8 +73,8 @@ class Game(arcade.Window):
                 arcade.load_texture("images/player/jumping/"+str(i)+".png", scale=PLAYER_SCALE, mirrored=True)
             )
 
-        self.player.center_x = 640
-        self.player.center_y = 180
+        self.player.center_x = PLAYER_CENTER_X
+        self.player.center_y = PLAYER_CENTER_Y
         self.player.scale = PLAYER_SCALE
         self.player.texture_change_distance = 40
         self.player_list.append(self.player)

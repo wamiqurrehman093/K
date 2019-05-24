@@ -157,7 +157,7 @@ class StateCrouch(CharacterState):
     def update(self, character, key, type, time=0):
         if character.crouch_index <= 5:
             if character.crouch_index == 0:
-                character.center_y -= 76
+                character.center_y -= 90
             if character.state == FACE_LEFT:
                 texture_list = character.crouch_left_textures
             elif character.state == FACE_RIGHT:
@@ -174,7 +174,7 @@ class StateCrouch(CharacterState):
                 texture_list = character.crouch_right_textures
             character.crouch_index += 1
             if character.crouch_index >= len(texture_list):
-                character.center_y += 76
+                character.center_y += 90
                 character.crouch_index = 0
                 if character.state == FACE_LEFT:
                     character.texture = character.stand_left_textures[-1]

@@ -1,10 +1,10 @@
 import arcade
 from arcade import Sprite
-from player_state import *
+from character_state import *
 import math
 
 
-class Player(arcade.Sprite):
+class Character(arcade.Sprite):
     def __init__(self, scale: float = 1,
                  image_x: float = 0, image_y: float = 0,
                  center_x: float = 0, center_y: float = 0):
