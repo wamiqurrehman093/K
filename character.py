@@ -19,9 +19,39 @@ class Character(arcade.Sprite):
         self.crouch_right_textures = None
         self.jump_right_textures = None
         self.jump_left_textures = None
+        # light punch
+        self.stand_right_lp_textures = None
+        self.stand_left_lp_textures = None
+        self.jump_right_lp_textures = None
+        self.jump_left_lp_textures = None
+        self.crouch_right_lp_textures = None
+        self.crouch_left_lp_textures = None
+        # light kick
+        self.stand_right_lk_textures = None
+        self.stand_left_lk_textures = None
+        self.jump_right_lk_textures = None
+        self.jump_left_lk_textures = None
+        self.crouch_right_lk_textures = None
+        self.crouch_left_lk_textures = None
+        # heavy punch
+        self.stand_right_hp_textures = None
+        self.stand_left_hp_textures = None
+        self.jump_right_hp_textures = None
+        self.jump_left_hp_textures = None
+        self.crouch_right_hp_textures = None
+        self.crouch_left_hp_textures = None
+        # heavy kick
+        self.stand_right_hk_textures = None
+        self.stand_left_hk_textures = None
+        self.jump_right_hk_textures = None
+        self.jump_left_hk_textures = None
+        self.crouch_right_hk_textures = None
+        self.crouch_left_hk_textures = None
+        # indexes
         self.cur_texture_index = 0
         self.crouch_index = 0
         self.jump_texture_index = 0
+        self.action_texture_index = 0
         self.texture_change_distance = 20
         self.last_texture_change_center_x = 0
         self.last_texture_change_center_y = 0
@@ -34,6 +64,9 @@ class Character(arcade.Sprite):
         self.key = None
         self.speed = 9
         self.jump_speed = 15
+        self.prev_state_ = None
+        self.current_state_ = "StateIdle"
+        self.prev_y = None
 
     def input_handler(self, key, type):
         state = self.state_.handle_input(self, key, type)

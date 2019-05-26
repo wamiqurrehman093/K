@@ -1,5 +1,6 @@
 import arcade
 import math
+from character_action import *
 
 FACE_RIGHT = 1
 FACE_LEFT = 2
@@ -42,8 +43,21 @@ class StateIdle(CharacterState):
                 return StateJump()
             elif key == KEY_DOWN:
                 return StateCrouch()
+            elif key == KEY_LP:
+                character.prev_state_ = StateIdle()
+                return LightPunch()
+            elif key == KEY_LK:
+                character.prev_state_ = StateIdle()
+                return LightKick()
+            elif key == KEY_HP:
+                character.prev_state_ = StateIdle()
+                return HeavyPunch()
+            elif key == KEY_HK:
+                character.prev_state_ = StateIdle()
+                return HeavyKick()
     
     def update(self, character, key, type, time):
+        character.current_state_ = "StateIdle"
         if character.just_finished:
             character.finished_time += time
 
@@ -64,7 +78,29 @@ class StateIdle(CharacterState):
 
 class StateWalk(CharacterState):    
     def handle_input(self, character, key, type):
-        if type == "RELEASED":
+        if type == "PRESSED":
+            if key == KEY_LP:
+                character.change_x = 0
+                if character.state == FACE_LEFT:
+                    character.texture = character.stand_left_textures[-1]
+                if character.state == FACE_RIGHT:
+                    character.texture = character.stand_right_textures[-1]
+                character.prev_state_ = StateIdle()
+                return LightPunch()
+            elif key == KEY_LK:
+                character.change_x = 0
+                character.prev_state_ = StateIdle()
+                return LightKick()
+            elif key == KEY_HP:
+                character.change_x = 0
+                character.prev_state_ = StateIdle()
+                return HeavyPunch()
+            elif key == KEY_HK:
+                character.change_x = 0
+                character.prev_state_ = StateIdle()
+                return HeavyKick()
+
+        elif type == "RELEASED":
             if key == KEY_LEFT or key == KEY_RIGHT:
                 character.change_x = 0
                 if character.state == FACE_LEFT:
@@ -74,6 +110,7 @@ class StateWalk(CharacterState):
                 return StateIdle()
     
     def update(self, character, key, type, time):
+        character.current_state_ = "StateWalk"
         x1 = character.center_x
         x2 = character.last_texture_change_center_x
         y1 = character.center_y
@@ -117,9 +154,32 @@ class StateWalk(CharacterState):
             character.height = character._texture.height * character.scale
 
 
+class StateJump(CharacterState):
+    def handle_input(self, character, key, type):
+        if type == "PRESSED":
+            if key == KEY_LP:
+                character.prev_state_ = StateJump()
+                character.prev_y = character.change_y
+                character.change_y = 0
+                return LightPunch()
+            elif key == KEY_LK:
+                character.prev_state_ = StateJump()
+                character.prev_y = character.change_y
+                character.change_y = 0
+                return LightKick()
+            elif key == KEY_HP:
+                character.prev_state_ = StateJump()
+                character.prev_y = character.change_y
+                character.change_y = 0
+                return HeavyPunch()
+            elif key == KEY_HK:
+                character.prev_state_ = StateJump()
+                character.prev_y = character.change_y
+                character.change_y = 0
+                return HeavyKick()
 
-class StateJump(CharacterState):   
     def update(self, character, key, type, time):
+        character.current_state_ = "StateJump"
         if character.center_y >= (character.before_jump_pos+200):
             character.change_y = -character.speed
 
@@ -133,7 +193,7 @@ class StateJump(CharacterState):
             elif character.state == FACE_RIGHT:
                 texture_list = character.jump_right_textures
 
-            character.jump_texture_index += 1
+            
             if character.jump_texture_index >= len(texture_list):
                 character.jump_texture_index = 0
                 character.change_y = 0
@@ -147,14 +207,31 @@ class StateJump(CharacterState):
                 return StateIdle()
 
             character.texture = texture_list[character.jump_texture_index]
+            character.jump_texture_index += 1
 
 
 
 class StateCrouch(CharacterState):    
     def handle_input(self, character, key, type):
-        self.update(character, key, type)
+        if type == "PRESSED":
+            character.prev_y = character.center_y
+            if key == KEY_LP:
+                character.prev_state_ = self
+                return LightPunch()
+            elif key == KEY_LK:
+                character.prev_state_ = self
+                return LightKick()
+            elif key == KEY_HP:
+                character.prev_state_ = self
+                return HeavyPunch()
+            elif key == KEY_HK:
+                character.prev_state_ = self
+                return HeavyKick()
+        else:
+            self.update(character, key, type)
     
     def update(self, character, key, type, time=0):
+        character.current_state_ = "StateCrouch"
         if character.crouch_index <= 5:
             if character.crouch_index == 0:
                 character.center_y -= 90
